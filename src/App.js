@@ -2,8 +2,8 @@ import './App.css';
 import { useEffect, useState } from 'react';
 
 
+let counter = 0;
 function App() {
-  let counter = 0;
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
@@ -28,7 +28,12 @@ function App() {
 
   const handleClick = () => {
     if (newTask && newTaskType) {
-      setTasks([...tasks, newTask]);
+      setTasks([
+        ...tasks, 
+        {id: counter, 
+        taskName: newTask,
+      taskType: newTaskType}]);
+      counter = counter + 1;
     }
   }
 
@@ -51,15 +56,15 @@ function App() {
             <ul>
               {tasks.map((task) => {
                 return (
-                  <li id={task}>{task}</li>
+                  <li id={task.id}>{task.taskName}</li>
                 );
               })}
             </ul>
             <label htmlFor="taskName" className="col-12 col-form-label">Task</label>
             <input id="taskName" className="form-control" type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} />
             <label htmlFor="taskType" className="col-12 col-form-label">Type</label>
-            <select className="form-select" aria-label="type" value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
-              <option selected>Select a type</option>
+            <select defaultValue="" className="form-select" aria-label="type" value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
+              <option value="">Select a type</option>
               {taskTypes.map((taskType) => {
                 return <option value={taskType}>{taskType}</option>
               })}

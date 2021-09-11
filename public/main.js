@@ -5,7 +5,7 @@ const path = require('path');
 
 const Store = require('electron-store');
 const store = new Store();
-//store.clear();
+store.clear();
 
 if (!store.get('taskTypes')) {
     store.set('taskTypes', ["Daily", "Weekly", "Long term"]);
