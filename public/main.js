@@ -28,6 +28,8 @@ ipcMain.on('set-tasks', async (event, arg) => {
     event.reply('set-tasks', store.get('tasks'));
 });
 
+
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 800,
