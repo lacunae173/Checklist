@@ -1,18 +1,26 @@
 import './App.css';
 import { useEffect, useState } from 'react';
+import { uniqueId } from 'lodash';
+import TaskItem from './TaskItem';
 
+//debug
+function getTodayDate() {
+  return new Date();
+}
 
-let counter = 0;
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
   const [taskTypes, setTaskTypes] = useState([])
+
   useEffect(() => {
     window.electron.ipcRenderer.once('get-tasks', (arg) => {
       // eslint-disable-next-line no-console
       console.log(arg);
-      if (arg) setTasks(arg);
+      if (arg) {
+        setTasks(arg);
+      }
     });
     window.electron.ipcRenderer.once('get-task-types', (arg) => {
       console.log(arg);
@@ -31,70 +39,95 @@ function App() {
     if (newTask && newTaskType) {
       setTasks([
         ...tasks, 
-        {id: counter, 
+        {id: uniqueId('task-'), 
         taskName: newTask,
-      taskType: newTaskType}]);
-      counter = counter + 1;
+      taskType: newTaskType,
+      finished: false}]);
+      setNewTask("");
+      setNewTaskType("");
+      
     }
   }
 
+  const handleCheck = (taskId, finished) => {
+
+    const idx = tasks.findIndex((task) => task.id === taskId);
+    const ti = tasks[idx];
+    ti['finished'] = finished;
+    ti['finishDate'] = new Date();
+    setTasks([
+      ...tasks.slice(0, idx),
+      ti,
+      ...tasks.slice(idx + 1)
+    ]);
+    
+  }
+
   return (
-    <div>
-
-    <div className="row">
-      <div className="col-3">
-
-        <nav id="type-nav" className="navbar navbar-light position-fixed">
-          <ul className="nav nav-vertab flex-column ">
-            {taskTypes.map((taskType) => {
-              return <li className="nav-item">
-                <a href={"#" + taskType} className="nav-link">{taskType}</a>
-              </li>
-            })}
-
-          </ul>
-        </nav>
-        {/* <nav className="nav nav-vertab flex-column position-fixed" id="type-nav">
-              
-              <a href="#" className="nav-link active">Daily</a>
-              <a href="#" className="nav-link">Weekly</a>
-              <a href="#" className="nav-link">Long term</a>
-            </nav> */}
-      </div>
-
-      <div className="col-9">
-        <div data-bs-spy="scroll" data-bs-target="#type-nav" data-bs-offset="0" className="scrollspy-example" tabindex="0">
-          {taskTypes.map((taskType, idx) => {
-            return (
-              <div><h4 id={taskType}>{taskType}</h4>
-                <p>You may need to discover what is removing the scrollbar from your Electron application, and then adapt from there. For example, I use App.js in my Electron application. By inspecting on the elements in the developer tools, I discovered App.js gives the body of the html a class name .app-no-scrollbar, and this gives the view a style with no scrollbar. The easy solution is to add $('body').removeClass('app-no-scrollbar') at the bottom of the javascript file (yes, I'm using jQuery), and this allows the scrollbar to show as normal.</p></div>
-
-            )
-          })}
+    <div className="p-3">
+      <div className="row">
+        <div className="col-4">
+          
+          <nav id="type-nav" className="navbar flex-column position-fixed">
+            <nav className="nav nav-vertab flex-column">
+              {taskTypes.map((taskType) => {
+                return <a href={"#" + taskType} className="nav-link">{taskType}</a>
+              })}
+            </nav>
+          </nav>
         </div>
-        <ul>
-          {tasks.map((task) => {
-            return (
-              <li id={task.id}>{task.taskName}</li>
-            );
-          })}
-        </ul>
-        <label htmlFor="taskName" className="col-12 col-form-label">Task</label>
-        <input id="taskName" className="form-control" type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} />
-        <label htmlFor="taskType" className="col-12 col-form-label">Type</label>
-        <select className="form-select" aria-label="type" value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
-          <option value="">Select a type</option>
-          {taskTypes.map((taskType) => {
-            return <option value={taskType}>{taskType}</option>
-          })}
-        </select>
-        <button className="btn btn-primary" onClick={handleClick} style={{ color: 'white' }}>Add task</button>
+
+        <div className="col-8">
+          <h3>Tasks</h3>
+          <div className="tasks-scroll" tabIndex="0">
+            {taskTypes.map((taskType, idx) => {
+              const tasksOfType = tasks.filter((task) => task.taskType === taskType);
+              if (tasksOfType.length) {
+                return (
+                  <div className="my-3">
+                    <h5 id={taskType}>{taskType}</h5>
+                    <ul style={{ listStyle: "none" }} className="list-group list-group-flush">
+                      {tasksOfType.map((task) => {
+                        return (
+                          <TaskItem task={task} handleCheck={handleCheck} />
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )
+              } else {
+                return <div></div>;
+              }
+            })}
+          </div>
+        </div>
       </div>
-
-    </div>
-
-      <button className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }}>+</button>
-  </div>
+      <button className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#exampleModal">+</button>
+      <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="addTaskModalTitle">Add Task</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <label htmlFor="taskName" className="col-form-label">Task</label>
+              <input id="taskName" className="form-control" type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} />
+              <label htmlFor="taskType" className="col-form-label">Type</label>
+              <select className="form-select" aria-label="type" value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
+                <option value="">Select a type</option>
+                {taskTypes.map((taskType) => {
+                  return <option value={taskType}>{taskType}</option>
+                })}
+              </select>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" data-bs-dismiss="modal" onClick={handleClick} style={{ color: 'white' }}>Add task</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div> 
   );
 }
 

@@ -5,15 +5,43 @@ const path = require('path');
 
 const Store = require('electron-store');
 const store = new Store();
-store.clear();
 
 if (!store.get('taskTypes')) {
     store.set('taskTypes', ["Daily", "Weekly", "Long term"]);
 }
+//debug
+function getTodayDate() {
+    const d = new Date();
+    d.setDate(30);
+    return d;
+}
 
 ipcMain.once('get-tasks', async (event, arg) => {
     console.log("received request for tasks");
-    event.reply('get-tasks', store.get('tasks'));
+    const tasks = store.get('tasks');
+
+    console.log(tasks);
+    const updatedTasks = tasks.map((task) => {
+        if (task.finished) {
+            if (task.taskType === 'Daily') {
+                console.log(task.finishDate);
+                const fd = new Date(task.finishDate);
+                console.log(fd);
+                const today = getTodayDate();
+                console.log(today);
+                if (fd.getDate() !== getTodayDate().getDate()) {
+                    return {
+                        ...task,
+                        finished: false
+                    }
+                } 
+            }
+        }
+        return task;
+    })
+    console.log(updatedTasks);
+    console.log("reset");
+    event.reply('get-tasks', updatedTasks);
 });
 
 ipcMain.once('get-task-types', async (event, arg) => {
