@@ -3,11 +3,6 @@ import { useEffect, useState } from 'react';
 import { uniqueId } from 'lodash';
 import TaskItem from './TaskItem';
 
-//debug
-function getTodayDate() {
-  return new Date();
-}
-
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
@@ -54,7 +49,9 @@ function App() {
     const idx = tasks.findIndex((task) => task.id === taskId);
     const ti = tasks[idx];
     ti['finished'] = finished;
-    ti['finishDate'] = new Date();
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    ti['finishDate'] = d;
     setTasks([
       ...tasks.slice(0, idx),
       ti,

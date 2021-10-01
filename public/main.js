@@ -11,9 +11,16 @@ if (!store.get('taskTypes')) {
 }
 //debug
 function getTodayDate() {
-    const d = new Date();
-    d.setDate(30);
+    const d = new Date(2021, 10, 7);
+    // d.setDate(30);
+    d.setHours(0,0,0,0);
     return d;
+}
+
+function isSameDay(d1, d2) {
+    return d1.getDate() === d2.getDate() 
+    && d1.getMonth() === d2.getMonth()
+    && d1.getYear() === d2.getYear();
 }
 
 ipcMain.once('get-tasks', async (event, arg) => {
@@ -23,13 +30,19 @@ ipcMain.once('get-tasks', async (event, arg) => {
     console.log(tasks);
     const updatedTasks = tasks.map((task) => {
         if (task.finished) {
+            const fd = new Date(task.finishDate);
+            const td = getTodayDate();
             if (task.taskType === 'Daily') {
-                console.log(task.finishDate);
-                const fd = new Date(task.finishDate);
                 console.log(fd);
-                const today = getTodayDate();
-                console.log(today);
-                if (fd.getDate() !== getTodayDate().getDate()) {
+                console.log(td);
+                if (!isSameDay(fd, td)) {
+                    return {
+                        ...task,
+                        finished: false
+                    }
+                } 
+            } else if (task.taskType === 'Weekly') {
+                if (!isSameDay(fd, td) && (fd.getDay() >= td.getDay() || td.getDate() - fd.getDate() >= 7)) {
                     return {
                         ...task,
                         finished: false
