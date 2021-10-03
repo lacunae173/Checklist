@@ -29,7 +29,10 @@ function App() {
   //   window.electron.ipcRenderer.setTasks(tasks);
   // }, [tasks]);
 
-  
+  const handleDelete = (e, taskId) => {
+    e.preventDefault();
+    window.electron.ipcRenderer.deleteTask(taskId);
+  }
 
   const handleClick = () => {
     if (newTask && newTaskType) {
@@ -87,13 +90,13 @@ function App() {
                       {tasksOfType.map((task) => {
                         if (!task.finished)
                         return (
-                          <TaskItem task={task} handleCheck={handleCheck} />
+                          <TaskItem task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
                         )
                       })}
                       {tasksOfType.map((task) => {
                         if (task.finished)
                         return (
-                          <TaskItem task={task} handleCheck={handleCheck} />
+                          <TaskItem task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
                         )
                       })}
                     </ul>

@@ -30,6 +30,9 @@ contextBridge.exposeInMainWorld('electron', {
         },
         updateTask(task) {
             ipcRenderer.send('update-task', task);
+        },
+        deleteTask(taskId) {
+            ipcRenderer.send('delete-task', taskId);
         }
     }
 })

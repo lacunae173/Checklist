@@ -10,6 +10,7 @@ function TaskItem(props) {
             {" "}<label className={`form-check-label ${props.task.finished? 'crossed' : ''}`} htmlFor={props.task.id + "-checkbox"}>
                 {props.task.taskName}
             </label>
+            <button onClick={(e) => props.handleDelete(e, props.task.id)}>delete</button>
         </li>
     )
 }

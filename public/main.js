@@ -101,6 +101,21 @@ ipcMain.on('update-task', async (event, arg) => {
     event.reply('get-tasks', store.get('tasks'));
 })
 
+ipcMain.on('delete-task', async (event, arg) => {
+    console.log('delete');
+    const tasks = store.get('tasks');
+    if (tasks) {
+        const idx = tasks.findIndex((task) => {return task.id === arg});
+        console.log(arg);
+        console.log(idx);
+        console.log(tasks);
+        tasks.splice(idx, 1);
+        store.set('tasks', tasks);
+    }
+    
+    event.reply('get-tasks', store.get('tasks'));
+})
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 800,
