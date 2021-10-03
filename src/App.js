@@ -7,11 +7,10 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
-  const [taskTypes, setTaskTypes] = useState([])
+  const [taskTypes, setTaskTypes] = useState([]);
 
   useEffect(() => {
-    window.electron.ipcRenderer.once('get-tasks', (arg) => {
-      // eslint-disable-next-line no-console
+    window.electron.ipcRenderer.on('get-tasks', (arg) => {
       console.log(arg);
       if (arg) {
         setTasks(arg);
@@ -25,38 +24,39 @@ function App() {
     // document.body.setAttribute('data-bs-spy', 'scroll')
   }, []);
 
-  useEffect(() => {
-    console.log(tasks);
-    window.electron.ipcRenderer.setTasks(tasks);
-  }, [tasks]);
+  // useEffect(() => {
+  //   console.log(tasks);
+  //   window.electron.ipcRenderer.setTasks(tasks);
+  // }, [tasks]);
+
+  
 
   const handleClick = () => {
     if (newTask && newTaskType) {
-      setTasks([
-        ...tasks, 
-        {id: uniqueId('task-'), 
+      // setTasks([
+      //   ...tasks, 
+      //   {id: uniqueId('task-'), 
+      //   taskName: newTask,
+      // taskType: newTaskType,
+      // finished: false}]);      
+      window.electron.ipcRenderer.insertTask({
         taskName: newTask,
-      taskType: newTaskType,
-      finished: false}]);
+        taskType: newTaskType,
+        finished: false
+      });
       setNewTask("");
       setNewTaskType("");
-      
     }
   }
 
   const handleCheck = (taskId, finished) => {
-
     const idx = tasks.findIndex((task) => task.id === taskId);
     const ti = tasks[idx];
     ti['finished'] = finished;
     const d = new Date();
     d.setHours(0,0,0,0);
     ti['finishDate'] = d;
-    setTasks([
-      ...tasks.slice(0, idx),
-      ti,
-      ...tasks.slice(idx + 1)
-    ]);
+    window.electron.ipcRenderer.updateTask(ti);
     
   }
 
