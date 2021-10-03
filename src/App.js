@@ -85,6 +85,13 @@ function App() {
                     <h5 id={taskType}>{taskType}</h5>
                     <ul style={{ listStyle: "none" }} className="list-group list-group-flush">
                       {tasksOfType.map((task) => {
+                        if (!task.finished)
+                        return (
+                          <TaskItem task={task} handleCheck={handleCheck} />
+                        )
+                      })}
+                      {tasksOfType.map((task) => {
+                        if (task.finished)
                         return (
                           <TaskItem task={task} handleCheck={handleCheck} />
                         )
