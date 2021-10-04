@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import useLongPress from "./useLongPress";
 
 function TaskItem(props) {
+    
+
     const onLongPress = () => {
-        props.handleDelete(props.task.id)
+        props.handleDelete(props.task.id);
     }
 
     const onClick = () => {
@@ -28,7 +31,9 @@ function TaskItem(props) {
         //     </label>
         //     <button onClick={(e) => props.handleDelete(e, props.task.id)}>delete</button>
         // </li>
-        <button type="button" className={`list-group-item list-group-item-action ${props.task.finished ? 'crossed' : ''}`} {...longPressEvent} >{props.task.taskName}</button>
+<button type="button" className={`list-group-item list-group-item-action ${props.task.finished ? 'crossed' : ''}`} {...longPressEvent} >{props.task.taskName}</button>
+
+        
     )
 }
 

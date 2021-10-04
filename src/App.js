@@ -2,12 +2,16 @@ import './App.css';
 import { useEffect, useState } from 'react';
 import { uniqueId } from 'lodash';
 import TaskItem from './TaskItem';
+import { bootstrap } from 'globalthis/implementation';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
   const [taskTypes, setTaskTypes] = useState([]);
+  const [needDelConfirm, setNeedDelConfirm] = useState(true);
+  const [taskIdToDelete, setTaskIdToDelete] = useState(-1);
+  
 
   useEffect(() => {
     window.electron.ipcRenderer.on('get-tasks', (arg) => {
@@ -29,9 +33,7 @@ function App() {
   //   window.electron.ipcRenderer.setTasks(tasks);
   // }, [tasks]);
 
-  const handleDelete = (e, taskId) => {
-    window.electron.ipcRenderer.deleteTask(taskId);
-  }
+
 
   const handleClick = () => {
     if (newTask && newTaskType) {
@@ -67,6 +69,26 @@ function App() {
 
   }
 
+  const handleDelete = (taskId) => {
+    if (needDelConfirm) {
+      setTaskIdToDelete(taskId);
+      const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      confirmModal.toggle();
+    } else {
+      window.electron.ipcRenderer.deleteTask(taskId);
+    }
+  }
+
+  const handleConfirmDelete = () => {
+    window.electron.ipcRenderer.deleteTask(taskIdToDelete);
+    
+  }
+
+  const handleChangeNeedConfirm = () => {
+    setNeedDelConfirm(false);
+  }
+
+ 
   return (
     <div className="p-3">
       <div className="row">
@@ -74,8 +96,8 @@ function App() {
           
           <nav id="type-nav" className="navbar flex-column position-fixed">
             <nav className="nav nav-vertab flex-column">
-              {taskTypes.map((taskType) => {
-                return <a href={"#" + taskType} className="nav-link">{taskType}</a>
+              {taskTypes.map((taskType, index) => {
+                return <a id={`type-${index}`} href={"#" + taskType} className="nav-link">{taskType}</a>
               })}
             </nav>
           </nav>
@@ -113,9 +135,9 @@ function App() {
           </div>
         </div>
       </div>
-      <button id="float-add-task" className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#exampleModal">+</button>
-      <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div className="modal-dialog">
+      <button id="float-add-task" className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#addTaskModal">+</button>
+      <div className="modal fade" id="addTaskModal" tabIndex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="addTaskModalTitle">Add Task</h5>
@@ -134,6 +156,24 @@ function App() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-primary" data-bs-dismiss="modal" onClick={handleClick} style={{ color: 'white' }}>Add task</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="modal fade" id="confirmModal" tabIndex="-1">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-body">
+              <p>Are you sure you want to delete this task?</p>
+            </div>
+            <div className="modal-footer">
+              <div className="me-auto">
+                <input className="form-check-input" type="checkbox" value="" id="needConfirmCheck" onChange={handleChangeNeedConfirm} />
+                <label className="form-check-label ms-1" htmlFor="needConfirmCheck">
+                  <small>Do not show me this dialog again in this session</small>
+                </label>
+              </div>
+              <button className="btn btn-primary" data-bs-dismiss="modal" onClick={handleConfirmDelete} style={{ color: 'white' }}>Yes</button>
             </div>
           </div>
         </div>
