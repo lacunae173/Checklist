@@ -30,7 +30,6 @@ function App() {
   // }, [tasks]);
 
   const handleDelete = (e, taskId) => {
-    e.preventDefault();
     window.electron.ipcRenderer.deleteTask(taskId);
   }
 
@@ -52,21 +51,26 @@ function App() {
     }
   }
 
-  const handleCheck = (taskId, finished) => {
-    const idx = tasks.findIndex((task) => task.id === taskId);
-    const ti = tasks[idx];
-    ti['finished'] = finished;
-    const d = new Date();
-    d.setHours(0,0,0,0);
-    ti['finishDate'] = d;
-    window.electron.ipcRenderer.updateTask(ti);
+  // const handleCheck = (taskId, finished) => {
+  //   const idx = tasks.findIndex((task) => task.id === taskId);
+  //   const ti = tasks[idx];
+  //   ti['finished'] = finished;
+  //   const d = new Date();
+  //   d.setHours(0,0,0,0);
+  //   ti['finishDate'] = d;
+  //   window.electron.ipcRenderer.updateTask(ti);
     
+  // }
+
+  const handleCheck = (taskId) => {
+    window.electron.ipcRenderer.checkTask(taskId);
+
   }
 
   return (
     <div className="p-3">
       <div className="row">
-        <div className="col-4">
+        <div className="col-3">
           
           <nav id="type-nav" className="navbar flex-column position-fixed">
             <nav className="nav nav-vertab flex-column">
@@ -77,7 +81,7 @@ function App() {
           </nav>
         </div>
 
-        <div className="col-8">
+        <div className="col-9">
           <h3>Tasks</h3>
           <div className="tasks-scroll" tabIndex="0">
             {taskTypes.map((taskType, idx) => {
@@ -86,7 +90,7 @@ function App() {
                 return (
                   <div className="my-3">
                     <h5 id={taskType}>{taskType}</h5>
-                    <ul style={{ listStyle: "none" }} className="list-group list-group-flush">
+                    <div className="list-group list-group-flush me-5">
                       {tasksOfType.map((task) => {
                         if (!task.finished)
                         return (
@@ -99,7 +103,7 @@ function App() {
                           <TaskItem task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
                         )
                       })}
-                    </ul>
+                    </div>
                   </div>
                 )
               } else {
@@ -109,7 +113,7 @@ function App() {
           </div>
         </div>
       </div>
-      <button className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#exampleModal">+</button>
+      <button id="float-add-task" className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#exampleModal">+</button>
       <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">

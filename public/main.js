@@ -88,7 +88,7 @@ ipcMain.on('insert-task', async (event, arg) => {
 })
 
 ipcMain.on('update-task', async (event, arg) => {
-    console.log('check update');
+    console.log('update');
     const tasks = store.get('tasks');
     if (tasks) {
         const newTasks = tasks.map((task) => {
@@ -113,6 +113,29 @@ ipcMain.on('delete-task', async (event, arg) => {
         store.set('tasks', tasks);
     }
     
+    event.reply('get-tasks', store.get('tasks'));
+})
+
+ipcMain.on('check-task', async (event, arg) => {
+    console.log('check');
+    const tasks = store.get('tasks');
+    if (tasks) {
+        const newTasks = tasks.map((task) => {
+            if (task.id === arg) {
+                const date = new Date();
+                date.setHours(0,0,0,0);
+                const finished = task.finished;
+                return {
+                    ...task,
+                    finished: !finished,
+                    finishDate: date
+                }
+            }
+            else return task;
+        });
+        store.set('tasks', newTasks);
+        console.log(newTasks);
+    }
     event.reply('get-tasks', store.get('tasks'));
 })
 

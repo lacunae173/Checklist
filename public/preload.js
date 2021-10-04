@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electron', {
             ipcRenderer.send('get-task-types')
         },
         on(channel, func) {
-            const validChannels = ['get-tasks', 'get-task-types', 'insert-task', 'update-task'];
+            const validChannels = ['get-tasks', 'get-task-types', 'insert-task', 'update-task', 'check-task'];
             if (validChannels.includes(channel)) {
                 ipcRenderer.on(channel, (event, ...args) => {
                     func(...args);
@@ -33,6 +33,9 @@ contextBridge.exposeInMainWorld('electron', {
         },
         deleteTask(taskId) {
             ipcRenderer.send('delete-task', taskId);
+        },
+        checkTask(taskId) {
+            ipcRenderer.send('check-task', taskId);
         }
     }
 })

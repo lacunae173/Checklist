@@ -1,3 +1,7 @@
-label.crossed {
+.crossed {
     text-decoration: line-through;
+}
+
+#float-add-task {
+    z-index: 100;
 }
