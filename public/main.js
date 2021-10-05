@@ -5,16 +5,12 @@ const path = require('path');
 
 const Store = require('electron-store');
 const store = new Store();
-if (require("electron-squirrel-startup")) {
-    app.quit();
-}
 if (!store.get('taskTypes')) {
     store.set('taskTypes', ["Daily", "Weekly", "Long term"]);
 }
-//debug
+
 function getTodayDate() {
     const d = new Date();
-     d.setDate(5);
     d.setHours(0,0,0,0);
     return d;
 }
@@ -26,20 +22,15 @@ function isSameDay(d1, d2) {
 }
 
 ipcMain.once('get-tasks', async (event, arg) => {
-    console.log("received request for tasks");
     const tasks = store.get('tasks');
     if (tasks) {
-        console.log(tasks);
+        // update finished state of task for daily and weekly
         const updatedTasks = tasks.map((task, idx) => {
             task.id = idx;
             if (task.finished) {
                 const fd = new Date(task.finishDate);
                 const td = getTodayDate();
                 if (task.taskType === 'Daily') {
-
-                    console.log("reset");
-                    // console.log(fd);
-                    // console.log(td);
                     if (!isSameDay(fd, td)) {
                         return {
                             ...task,
@@ -59,34 +50,34 @@ ipcMain.once('get-tasks', async (event, arg) => {
         })
         store.set('tasks', updatedTasks);
         store.set('idgen', updatedTasks.length);
-        console.log(updatedTasks);
         event.reply('get-tasks', updatedTasks);
     }
     
 });
 
 ipcMain.once('get-task-types', async (event, arg) => {
-    console.log("received request for task types");
     event.reply('get-task-types', store.get('taskTypes'));
 });
 
 ipcMain.on('insert-task', async (event, arg) => {
+    if (isDev) {
+        console.log('insert');
+    }
     var uid = store.get('idgen');
     if (!uid) {store.set('idgen', 0); uid = 0}
-    console.log('insert task');
     var tasks = store.get('tasks');
     if (!tasks) tasks = [];
-    // console.log(arg);
     uid = uid + 1;
     store.set('idgen', uid);
     tasks = [...tasks, {...arg, id: uid}];
-    console.log(tasks);
     store.set('tasks', tasks);
     event.reply('get-tasks', store.get('tasks'));
 })
 
 ipcMain.on('update-task', async (event, arg) => {
-    console.log('update');
+    if (isDev) {
+        console.log('update');
+    }
     const tasks = store.get('tasks');
     if (tasks) {
         const newTasks = tasks.map((task) => {
@@ -94,20 +85,18 @@ ipcMain.on('update-task', async (event, arg) => {
             else return task;
         });
         store.set('tasks', newTasks);
-        // console.log(newTasks);
     }
     event.reply('get-tasks', store.get('tasks'));
 })
 
 
 ipcMain.on('delete-task', async (event, arg) => {
-    console.log('delete');
+    if (isDev) {
+        console.log('delete');
+    }
     const tasks = store.get('tasks');
     if (tasks) {
         const idx = tasks.findIndex((task) => {return task.id === arg});
-        // console.log(arg);
-        // console.log(idx);
-        // console.log(tasks);
         tasks.splice(idx, 1);
         store.set('tasks', tasks);
     }
@@ -116,7 +105,9 @@ ipcMain.on('delete-task', async (event, arg) => {
 })
 
 ipcMain.on('check-task', async (event, arg) => {
-    console.log('check');
+    if (isDev) {
+        console.log('check');
+    }
     const tasks = store.get('tasks');
     if (tasks) {
         const newTasks = tasks.map((task) => {
@@ -133,7 +124,6 @@ ipcMain.on('check-task', async (event, arg) => {
             else return task;
         });
         store.set('tasks', newTasks);
-        // console.log(newTasks);
     }
     event.reply('get-tasks', store.get('tasks'));
 })
@@ -158,7 +148,7 @@ function createWindow() {
     if (isDev) {
         win.webContents.openDevTools({ mode: 'detach' });
     }
-    // win.webContents.openDevTools({ mode: 'detach' });
+    
 }
 
 app.whenReady().then(createWindow);
