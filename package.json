@@ -1,12 +1,19 @@
 {
   "name": "checklist",
   "version": "0.1.0",
+  "author": {
+    "name": "Leyao Zhang",
+    "email": "leyao.zhang4@gmail.com"
+  },
+  "description": "Checklist",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "bootstrap": "5.0.2",
+    "electron-is-dev": "^2.0.0",
+    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -15,12 +22,15 @@
     "web-vitals": "^1.0.1"
   },
   "main": "public/main.js",
+  "homepage": "./",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "electron-forge start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron": "electron ."
+    "electron": "electron .",
+    "package": "electron-forge package",
+    "make": "react-scripts build && electron-forge make"
   },
   "eslintConfig": {
     "extends": [
@@ -41,7 +51,39 @@
     ]
   },
   "devDependencies": {
-    "electron": "^13.2.2",
-    "electron-is-dev": "^2.0.0"
+    "@electron-forge/cli": "^6.0.0-beta.61",
+    "@electron-forge/maker-deb": "^6.0.0-beta.61",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.61",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
+    "@electron-forge/maker-zip": "^6.0.0-beta.61",
+    "electron": "^13.2.2"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {"asar": true},
+      
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "checklist"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
   }
 }

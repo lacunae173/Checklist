@@ -1,10 +1,10 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import { uniqueId } from 'lodash';
 import TaskItem from './TaskItem';
 import { bootstrap } from 'globalthis/implementation';
 
 function App() {
+  // states
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
@@ -12,8 +12,8 @@ function App() {
   const [needDelConfirm, setNeedDelConfirm] = useState(true);
   const [taskIdToDelete, setTaskIdToDelete] = useState(-1);
   
-
   useEffect(() => {
+    // request data from main process
     window.electron.ipcRenderer.on('get-tasks', (arg) => {
       console.log(arg);
       if (arg) {
@@ -25,24 +25,11 @@ function App() {
       if (arg) setTaskTypes(arg);
     })
     window.electron.ipcRenderer.sendDataRequest();
-    // document.body.setAttribute('data-bs-spy', 'scroll')
   }, []);
 
-  // useEffect(() => {
-  //   console.log(tasks);
-  //   window.electron.ipcRenderer.setTasks(tasks);
-  // }, [tasks]);
-
-
-
+  // insert a task
   const handleClick = () => {
-    if (newTask && newTaskType) {
-      // setTasks([
-      //   ...tasks, 
-      //   {id: uniqueId('task-'), 
-      //   taskName: newTask,
-      // taskType: newTaskType,
-      // finished: false}]);      
+    if (newTask && newTaskType) {   
       window.electron.ipcRenderer.insertTask({
         taskName: newTask,
         taskType: newTaskType,
@@ -53,22 +40,12 @@ function App() {
     }
   }
 
-  // const handleCheck = (taskId, finished) => {
-  //   const idx = tasks.findIndex((task) => task.id === taskId);
-  //   const ti = tasks[idx];
-  //   ti['finished'] = finished;
-  //   const d = new Date();
-  //   d.setHours(0,0,0,0);
-  //   ti['finishDate'] = d;
-  //   window.electron.ipcRenderer.updateTask(ti);
-    
-  // }
-
+  // finish/unfinish a task
   const handleCheck = (taskId) => {
     window.electron.ipcRenderer.checkTask(taskId);
-
   }
 
+  // delete a task
   const handleDelete = (taskId) => {
     if (needDelConfirm) {
       setTaskIdToDelete(taskId);
@@ -79,25 +56,26 @@ function App() {
     }
   }
 
+  // confirm deletion
   const handleConfirmDelete = () => {
-    window.electron.ipcRenderer.deleteTask(taskIdToDelete);
-    
+    window.electron.ipcRenderer.deleteTask(taskIdToDelete);    
   }
 
+  // no need confirm
   const handleChangeNeedConfirm = () => {
     setNeedDelConfirm(false);
   }
 
- 
   return (
     <div className="p-3">
       <div className="row">
+
+        {/* Navbar */}
         <div className="col-3">
-          
           <nav id="type-nav" className="navbar flex-column position-fixed">
             <nav className="nav nav-vertab flex-column">
               {taskTypes.map((taskType, index) => {
-                return <a id={`type-${index}`} href={"#" + taskType} className="nav-link">{taskType}</a>
+                return <a key={`type-${index}`} href={"#" + taskType} className="nav-link">{taskType}</a>
               })}
             </nav>
           </nav>
@@ -105,37 +83,42 @@ function App() {
 
         <div className="col-9">
           <h3>Tasks</h3>
+          {/* Task list: unfinished first */}
           <div className="tasks-scroll" tabIndex="0">
             {taskTypes.map((taskType, idx) => {
               const tasksOfType = tasks.filter((task) => task.taskType === taskType);
               if (tasksOfType.length) {
                 return (
-                  <div className="my-3">
+                  <div key={`type-${idx}`} className="my-3">
                     <h5 id={taskType}>{taskType}</h5>
                     <div className="list-group list-group-flush me-5">
-                      {tasksOfType.map((task) => {
-                        if (!task.finished)
+                      {tasksOfType.filter((task, idx) => {
+                        return !task.finished
+                      }).map((task) => {
                         return (
-                          <TaskItem task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
-                        )
+                          <TaskItem key={task.id} task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
+                        )                         
                       })}
-                      {tasksOfType.map((task) => {
-                        if (task.finished)
+                      {tasksOfType.filter((task, idx) => {
+                        return task.finished
+                      }).map((task) => {
                         return (
-                          <TaskItem task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
+                          <TaskItem key={task.id} task={task} handleCheck={handleCheck} handleDelete={handleDelete} />
                         )
                       })}
                     </div>
                   </div>
                 )
               } else {
-                return <div></div>;
+                return <div key={`type-${idx}`}></div>;
               }
             })}
           </div>
         </div>
       </div>
+      {/* Add task button */}
       <button id="float-add-task" className="btn btn-primary btn-lg rounded-pill position-fixed bottom-5 end-5" style={{ color: 'white' }} data-bs-toggle="modal" data-bs-target="#addTaskModal">+</button>
+      {/* Add task modal */}
       <div className="modal fade" id="addTaskModal" tabIndex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -149,8 +132,8 @@ function App() {
               <label htmlFor="taskType" className="col-form-label">Type</label>
               <select className="form-select" aria-label="type" value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
                 <option value="">Select a type</option>
-                {taskTypes.map((taskType) => {
-                  return <option value={taskType}>{taskType}</option>
+                {taskTypes.map((taskType, index) => {
+                  return <option key={`type-${index}`} value={taskType}>{taskType}</option>
                 })}
               </select>
             </div>
@@ -160,6 +143,7 @@ function App() {
           </div>
         </div>
       </div>
+      {/* Confirm delete modal */}
       <div className="modal fade" id="confirmModal" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">

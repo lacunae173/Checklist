@@ -4,16 +4,17 @@ const isDev = require('electron-is-dev');
 const path = require('path');
 
 const Store = require('electron-store');
-const { uniqueId } = require("lodash");
 const store = new Store();
-
+if (require("electron-squirrel-startup")) {
+    app.quit();
+}
 if (!store.get('taskTypes')) {
     store.set('taskTypes', ["Daily", "Weekly", "Long term"]);
 }
 //debug
 function getTodayDate() {
     const d = new Date();
-    // d.setDate(30);
+     d.setDate(5);
     d.setHours(0,0,0,0);
     return d;
 }
@@ -29,13 +30,16 @@ ipcMain.once('get-tasks', async (event, arg) => {
     const tasks = store.get('tasks');
     if (tasks) {
         console.log(tasks);
-        const updatedTasks = tasks.map((task) => {
+        const updatedTasks = tasks.map((task, idx) => {
+            task.id = idx;
             if (task.finished) {
                 const fd = new Date(task.finishDate);
                 const td = getTodayDate();
                 if (task.taskType === 'Daily') {
-                    console.log(fd);
-                    console.log(td);
+
+                    console.log("reset");
+                    // console.log(fd);
+                    // console.log(td);
                     if (!isSameDay(fd, td)) {
                         return {
                             ...task,
@@ -49,12 +53,13 @@ ipcMain.once('get-tasks', async (event, arg) => {
                             finished: false
                         }
                     }
-                }
+                } 
             }
             return task;
         })
+        store.set('tasks', updatedTasks);
+        store.set('idgen', updatedTasks.length);
         console.log(updatedTasks);
-        console.log("reset");
         event.reply('get-tasks', updatedTasks);
     }
     
@@ -65,20 +70,13 @@ ipcMain.once('get-task-types', async (event, arg) => {
     event.reply('get-task-types', store.get('taskTypes'));
 });
 
-// ipcMain.on('set-tasks', async (event, arg) => {
-//     console.log("setting tasks");
-//     store.set('tasks', arg);
-//     console.log(arg);
-//     event.reply('set-tasks', store.get('tasks'));
-// });
-
 ipcMain.on('insert-task', async (event, arg) => {
     var uid = store.get('idgen');
     if (!uid) {store.set('idgen', 0); uid = 0}
     console.log('insert task');
     var tasks = store.get('tasks');
     if (!tasks) tasks = [];
-    console.log(arg);
+    // console.log(arg);
     uid = uid + 1;
     store.set('idgen', uid);
     tasks = [...tasks, {...arg, id: uid}];
@@ -96,19 +94,20 @@ ipcMain.on('update-task', async (event, arg) => {
             else return task;
         });
         store.set('tasks', newTasks);
-        console.log(newTasks);
+        // console.log(newTasks);
     }
     event.reply('get-tasks', store.get('tasks'));
 })
+
 
 ipcMain.on('delete-task', async (event, arg) => {
     console.log('delete');
     const tasks = store.get('tasks');
     if (tasks) {
         const idx = tasks.findIndex((task) => {return task.id === arg});
-        console.log(arg);
-        console.log(idx);
-        console.log(tasks);
+        // console.log(arg);
+        // console.log(idx);
+        // console.log(tasks);
         tasks.splice(idx, 1);
         store.set('tasks', tasks);
     }
@@ -134,7 +133,7 @@ ipcMain.on('check-task', async (event, arg) => {
             else return task;
         });
         store.set('tasks', newTasks);
-        console.log(newTasks);
+        // console.log(newTasks);
     }
     event.reply('get-tasks', store.get('tasks'));
 })
@@ -159,6 +158,7 @@ function createWindow() {
     if (isDev) {
         win.webContents.openDevTools({ mode: 'detach' });
     }
+    // win.webContents.openDevTools({ mode: 'detach' });
 }
 
 app.whenReady().then(createWindow);

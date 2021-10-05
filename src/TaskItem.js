@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import useLongPress from "./useLongPress";
 
 function TaskItem(props) {
